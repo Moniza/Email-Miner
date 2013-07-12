@@ -1,0 +1,160 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+
+public class crawler {
+
+  
+		//Extracting list of URLS from a given Webpage 
+		static String ExtractURL(String file)
+		{
+			
+			Pattern pattern=Pattern.compile("((https?|ftp):(//)+[\\w\\d:#@%/;$()~_?\\+-=\\\\.&]*)");
+			Matcher match=pattern.matcher(file);
+			String nextline="";
+			String Email = "";
+			while(match.find())
+			{
+				
+				nextline=file.substring(match.start(),match.end());
+				
+				if(Email.contains(nextline))
+				{
+					continue;
+				}
+				else
+				{
+					Email=Email+nextline+"\r\n";
+				}
+				
+			
+			} 
+			return Email;
+			
+			
+			
+		}
+		
+		//extracting complete code of a given Url from web
+		public String readURL(String strLine)
+		{
+			URL url;
+			String webpage = "";
+			String Emails="";
+			try {
+				
+				url = new URL(strLine);
+				URLConnection conn = url.openConnection();
+				BufferedReader br = new BufferedReader(new InputStreamReader(
+						conn.getInputStream()));
+
+				String currentLine;
+				while ((currentLine = br.readLine()) != null) {
+					webpage = webpage + currentLine+"\n";
+				}
+				Emails=ExtractURL(webpage);
+			} catch (IOException e) {
+				System.err.println(e);
+				return null; // The returned string will be empty
+			}
+			return Emails;
+			
+			
+			
+			
+		}
+		
+		//reading file URL List One by one
+		@SuppressWarnings("unused")
+		public String readFile(String path)
+		{
+			String list="";
+			try{
+				 
+				  FileInputStream fstream = new FileInputStream(path);
+				  // Get the object of DataInputStream
+				  DataInputStream in = new DataInputStream(fstream);
+				  BufferedReader br = new BufferedReader(new InputStreamReader(in));
+				  String strLine;
+				  boolean found=false;
+				  //Read File Line By Line
+				  while ((strLine = br.readLine()) != null)   {
+					  found=true;
+					  list=list +readURL(strLine)+"\n";
+					  
+				 
+				  }
+				  if(!found)
+				  {
+					  System.out.print("File is empty");
+				  }
+				  
+				  
+				  
+				  
+				  
+				 in.close();
+				    }catch (Exception e){//Catch exception if any
+				  System.err.println("Error: " + e.getMessage());
+				  }
+			if(list==null)
+			{
+				System.out.print("Urls contain No Email Adderess");
+			}
+			return list;
+				  
+			
+			
+		}
+		
+		//writing the list into the file given by the user
+		public static void WriteUrls(String URL,String path){
+			String pageContents = URL;
+			File file=new File(path);
+			try {
+			if (!file.exists()) {
+				
+					file.createNewFile();
+			}
+					FileWriter fw = new FileWriter(file.getAbsoluteFile());
+					BufferedWriter bw = new BufferedWriter(fw);
+					bw.write(pageContents);
+		
+					bw.close();
+					fw.close();
+		
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		
+		
+		
+		
+		
+		public static void main(String[] args) {
+			@SuppressWarnings("resource")
+			Scanner in=new Scanner(System.in);
+			System.out.println("path of File(.txt or .doc) containing list of urls:");
+			String path=in.next();
+			System.out.println("path of file(.txt or .doc) where You want to save Extracted Urls:");//You can provide the same file if you want to continue crawling.
+			String filepath=in.next();
+			crawler obj=new crawler();
+			WriteUrls(obj.readFile(path),filepath);
+			System.out.println("done");
+
+	}
+
+}
